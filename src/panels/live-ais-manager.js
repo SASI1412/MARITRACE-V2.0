@@ -121,10 +121,30 @@ export function initLiveAIManager(options = {}) {
 // Architecture alias
 export const initializeLiveAIS = initLiveAIManager;
 
+function getApiBaseUrl() {
+    if (import.meta.env.VITE_API_BASE_URL) {
+        return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
+    }
+    if (typeof window !== 'undefined') {
+        // In local Vite dev server (port 5173), point to local FastAPI backend on port 8000
+        if (window.location.port === '5173') {
+            return `http://${window.location.hostname || 'localhost'}:8000`;
+        }
+        return window.location.origin.replace(/\/+$/, '');
+    }
+    return 'http://localhost:8000';
+}
+
+function getWebSocketUrl() {
+    const apiBase = getApiBaseUrl();
+    const wsBase = apiBase.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+    return `${wsBase}/ws/ais`;
+}
+
 async function fetchInitialLiveAIS() {
     try {
-        const host = window.location.hostname || 'localhost';
-        const res = await fetch(`http://${host}:8000/api/live-ais`);
+        const apiBase = getApiBaseUrl();
+        const res = await fetch(`${apiBase}/api/live-ais`);
         if (res.ok) {
             const data = await res.json();
             if (data.success && Array.isArray(data.vessels) && data.vessels.length > 0) {
@@ -150,11 +170,11 @@ function connectWebSocket() {
         return;
     }
     
-    const host = window.location.hostname || 'localhost';
-    wsLiveAIS = new WebSocket(`ws://${host}:8000/ws/ais`);
+    const wsUrl = getWebSocketUrl();
+    wsLiveAIS = new WebSocket(wsUrl);
     
     wsLiveAIS.onopen = () => {
-        console.log("[Live AIS] Connected to backend AISStream feed.");
+        console.log("[Live AIS] Connected to backend AISStream feed at", wsUrl);
     };
 
     wsLiveAIS.onmessage = (event) => {
