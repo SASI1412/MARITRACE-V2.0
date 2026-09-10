@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+torch
+torchvision
+segmentation-models-pytorch
+Pillow
+numpy
+scipy
+opencv-python-headless
+google-generativeai
+websockets
+python-dotenv
