@@ -130,9 +130,13 @@ function getApiBaseUrl() {
         if (window.location.port === '5173') {
             return `http://${window.location.hostname || 'localhost'}:8000`;
         }
+        // If hosted on Vercel, default directly to the Railway backend
+        if (window.location.hostname.includes('vercel.app')) {
+            return 'https://maritrace-v20-production.up.railway.app';
+        }
         return window.location.origin.replace(/\/+$/, '');
     }
-    return 'http://localhost:8000';
+    return 'https://maritrace-v20-production.up.railway.app';
 }
 
 function getWebSocketUrl() {
